@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from api.utils import preparation_time_calcs, delivery_time_calcs, total_time
+from api.utils import preparation_time_calcs, delivery_time_calcs, total_time, calculate_distance
 
 
 class User(AbstractUser):
@@ -13,13 +13,26 @@ class User(AbstractUser):
     role = models.CharField(max_length=100, choices=ROLE_CHOOICE, default="user")
     groups = None
     user_permissions = None
+
     def __str__(self):
         return self.role
+
+
+class Restaurant(models.Model):
+    name = models.CharField(max_length=255)
+    address = models.CharField(max_length=255)
+    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    phone_number = models.CharField(max_length=13)
+
+    def __str__(self):
+        return self.name
 
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='categories')
 
     def __str__(self):
         return self.name
@@ -30,6 +43,7 @@ class Food(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_available = models.BooleanField(default=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="foods")
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='foods')
 
     def __str__(self):
         return self.name
@@ -43,12 +57,24 @@ class Order(models.Model):
         ("Delivered", "delivered"),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=25, choices=STATUS_CHOOICE, default="pending")
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     delivery_address = models.CharField(max_length=200)
-    distance = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    distance = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+
+    def distance_to_restaurant_calc(self, *args, **kwargs):
+        if not (self.latitude and self.longitude and self.restaurant):
+            return None
+
+        return calculate_distance(
+            self.latitude, self.longitude,
+            self.restaurant.latitude, self.restaurant.longitude
+        )
 
     def preparation_time_calcs(self):
         return preparation_time_calcs(self)

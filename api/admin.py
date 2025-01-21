@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Category, Food, Order, OrderFood
+from .models import User, Category, Food, Order, OrderFood, Restaurant
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -39,3 +39,10 @@ class OrderFoodAdmin(admin.ModelAdmin):
 
 
 admin.site.register(OrderFood, OrderFoodAdmin)
+
+
+class RestaurantAdmin(admin.ModelAdmin):
+    list = ('name', 'address', 'latitude', 'longitude', 'phone_number')
+
+
+admin.site.register(Restaurant, RestaurantAdmin)
