@@ -32,7 +32,6 @@ class Restaurant(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='categories')
 
     def __str__(self):
         return self.name
@@ -80,7 +79,7 @@ class Order(models.Model):
         return preparation_time_calcs(self)
 
     def delivery_time_calcs(self):
-        return delivery_time_calcs()
+        return delivery_time_calcs(self)
 
     def total_time(self):
         return total_time(self)

@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import User, Category, Food, Order,Restaurant
 from .serializers import UserSerializer, CategorySerializer, FoodSerializer, OrderSerializer,RestaurantSerializer
+from .utils import total_time
 
 
 class UserListView(APIView):
@@ -147,6 +148,8 @@ class FoodDetailView(APIView):
 class OrderListView(APIView):
     def get(self, request):
         orders = Order.objects.all()
+        for order in orders:
+            total_time_need = total_time(order)
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
 

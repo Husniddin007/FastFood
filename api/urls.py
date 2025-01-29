@@ -10,6 +10,7 @@ from .views import (
 urlpatterns = [
     path('users/', UserListView.as_view(), name='user-list'),
     path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
+    path('restaurants/', RestaurantListView.as_view(), name='restaurant-list'),
 
     path('categories/', CategoryListView.as_view(), name='category-list'),
     path('categories/<int:pk>/', CategoryDetailView.as_view(), name='category-detail'),
@@ -20,5 +21,4 @@ urlpatterns = [
     path('orders/', OrderListView.as_view(), name='order-list'),
     path('orders/<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
 
-    path('restaurants/', RestaurantListView.as_view(), name='restaurant-list'),
 ]

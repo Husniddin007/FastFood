@@ -49,6 +49,7 @@ class OrderSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     order_foods = OrderFoodSerializer(many=True)
     distance_to_restaurant = serializers.SerializerMethodField()
+    delivery_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -58,29 +59,37 @@ class OrderSerializer(serializers.ModelSerializer):
                   'total_price',
                   'order_foods',
                   'delivery_address',
-                  'distance_to_restaurant'
+                  'distance_to_restaurant',
+                  'delivery_time'
                   ]
 
     def get_distance_to_restaurant(self, obj):
         return obj.distance_to_restaurant_calc()
 
+    def get_delivery_time(self, obj):
+        total_time = obj.total_time()
+        return str(total_time)
+
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         order_foods_data = validated_data.pop('order_foods')
 
+        user, created = User.objects.get_or_create(id=user_data['id'], defaults=user_data)
+
         restaurant_data = validated_data.pop('restaurant', None)
-        if restaurant_data:
-            restaurant = Restaurant.objects.get(id=restaurant_data['id'])
-        else:
+        restaurant = Restaurant.objects.filter(id=restaurant_data['id']).first() if restaurant_data else None
+
+        if not restaurant:
             restaurant = Restaurant.objects.first()
 
-        user = User.objects.create(**user_data)
         order = Order.objects.create(user=user, restaurant=restaurant, **validated_data)
 
         for order_food_data in order_foods_data:
             food_data = order_food_data.pop('food')
-            food = Food.objects.get(id=food_data['id'])
-            OrderFood.objects.create(order=order, food=food, **order_food_data)
+            food = Food.objects.filter(id=food_data['id']).first()
+            if not food:
+                raise serializers.ValidationError(f"Food with id {food_data['id']} does not exist.")
+            OrderFood.objects.create(order=order, food=food, quantity=order_food_data.get('quantity',1))
 
         return order
 
