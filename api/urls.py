@@ -1,6 +1,6 @@
 # api/urls.py
 from django.urls import path
-from .views import (
+from api.views1 import (
     UserListView, UserDetailView,
     CategoryListView, CategoryDetailView,
     FoodListView, FoodDetailView,

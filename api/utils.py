@@ -8,6 +8,8 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 
 
 def preparation_time_calcs(order):
+    if order == 0:
+        return timedelta(minutes=5)
     total_orders = order.order_foods.count() if hasattr(order,'order_foods') else 1
     preparation_time = 5 * (total_orders // 4 + 1)
     return timedelta(minutes=preparation_time)
