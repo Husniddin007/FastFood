@@ -1,0 +1,29 @@
+name: Paywright Tests
+on:
+  push:
+    branches: [main,master]
+  pull_request:
+    branches: [main,master]
+jobs:
+  tests:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: action/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+      - name: Ensure browser are installed
+        run: python -m playwright install --with-deps
+      - name: Run your test
+        run: pytest --tracing=retain-on-failure
+      - uses: action/upload-artifact@v4
+        if: "!cancelled()"
+        with:
+            name: playwright-traces
+            path: test-results/
